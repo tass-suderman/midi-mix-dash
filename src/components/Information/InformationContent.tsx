@@ -3,7 +3,7 @@ import { privacyPolicy, sourceRepository } from '../../constants/siteInformation
 
 const sectionSx = { py: 3, borderBottom: '1px dashed', borderColor: 'border.default' };
 const InformationContent = () => (
-	<Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 900 }}>
+	<Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 900, margin: '0 auto' }}>
 		<Typography variant="h4" component="h2">
 			About MIDI Workbench
 		</Typography>
@@ -24,7 +24,7 @@ const InformationContent = () => (
 			<Stack direction="row" gap={2} sx={{ mt: 2, flexWrap: 'wrap' }}>
 				<Button
 					component="a"
-					href={`${import.meta.env.BASE_URL}LICENSE.txt`}
+					href={`${import.meta.env.BASE_URL}LICENSE.md`}
 					target="_blank"
 					rel="noreferrer"
 				>

@@ -9,11 +9,12 @@ import {
 	MenuItem,
 	TextField,
 } from '@mui/material';
-import { CloseRounded } from '@mui/icons-material';
 import type { Control, Device } from '../../types/controllers';
+import ControlEditorDialogTitle from './ControlEditorDialog/ControlEditorDialogTitle';
 import { noteFromCode, noteLabel, pitches, hex } from '../../utils/midi';
 import { specials } from '../../constants/keyCommands';
 import MixxxMappingFields from './MixxxMappingFields';
+
 interface Props {
 	control: Control;
 	device: Device;
@@ -21,6 +22,17 @@ interface Props {
 	onClose: () => void;
 	onSave: (control: Control) => void;
 }
+
+const getTitleForDialogHeader = (control: Control, device: Device) => {
+	if (device === 'moonlander') {
+		if (control.code === undefined) {
+			return 'MOONLANDER · MIDI MAPPINGS';
+		}
+		return 'MOONLANDER · LAYER 14';
+	}
+	return 'AKAI MIDIMIX';
+}
+
 const ControlEditor = ({ control, device, octave, onClose, onSave }: Props) => {
 	const [draft, setDraft] = useState<Control>(structuredClone(control));
 	const [customCode, setCustomCode] = useState(false);
@@ -42,21 +54,11 @@ const ControlEditor = ({ control, device, octave, onClose, onSave }: Props) => {
 				(mapping.action !== 'custom' || Boolean(mapping.group?.trim() && mapping.key?.trim()))));
 	return (
 		<Dialog open onClose={onClose} fullWidth maxWidth="sm">
-			<DialogTitle>
-				<span className="eyebrow">
-					{device === 'moonlander'
-						? draft.code === undefined
-							? 'MOONLANDER · MIDI MAPPINGS'
-							: 'MOONLANDER · LAYER 14'
-						: 'AKAI MIDIMIX'}
-				</span>
-				<div className="dialog-heading">
-					{control.label}
-					<Button aria-label="Close editor" onClick={onClose}>
-						<CloseRounded />
-					</Button>
-				</div>
-			</DialogTitle>
+			<ControlEditorDialogTitle 
+				title={getTitleForDialogHeader(draft, device)} 
+				controlLabel={control.label} 
+				onClose={onClose} 
+			/>
 			<DialogContent dividers>
 				<div className="editor-fields">
 					{device === 'moonlander' && draft.code !== undefined && (

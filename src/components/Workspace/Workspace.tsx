@@ -3,7 +3,7 @@ import { Alert, Button, Chip, CircularProgress, Snackbar, Tab, Tabs } from '@mui
 import {
 	DownloadRounded,
 	UploadFileRounded,
-	PianoRounded,
+	Keyboard,
 	TuneRounded,
 	InfoOutlined,
 } from '@mui/icons-material';
@@ -123,7 +123,7 @@ const Workspace = () => {
 							}}
 						>
 							<Tab
-								icon={<PianoRounded />}
+								icon={<Keyboard />}
 								iconPosition="start"
 								value="moonlander"
 								label="Moonlander"

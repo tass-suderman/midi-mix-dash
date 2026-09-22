@@ -40,7 +40,7 @@ This is a static, browser-only application. It does not compile or flash firmwar
 
 ## License and privacy
 
-The application uses GNU AGPL v3; see `LICENSE`. The Information tab links the license and the corresponding application source. Each build generates a static `source.zip` containing the current application and build files. This archive excludes local firmware/controller samples, imported projects, environment files, and Git metadata.
+The application uses GNU AGPL v3; see `LICENSE.md`. The Information tab links the license and the corresponding application source. Each build generates a static `source.zip` containing the current application and build files. This archive excludes local firmware/controller samples, imported projects, environment files, and Git metadata.
 
 See [the privacy policy](PRIVACY.md). There are no application database calls, analytics integrations, upload endpoints, or persistent browser saves. The only local-storage operation removes the old `midi-workbench-v1` autosave. Downloads are the user's own files; browsers may still cache application assets.
 

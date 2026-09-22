@@ -1,5 +1,5 @@
 import { StrictMode } from 'react';
-import MaterialUiApp from './material-ui/App';
+import MaterialUiApp from './App';
 import './index.css';
 const Root = () => (
 	<StrictMode>
