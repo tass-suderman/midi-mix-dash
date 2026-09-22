@@ -10,15 +10,5 @@ export default defineConfig({
       'Access-Control-Allow-Origin': '*',
     },
   },
-  plugins: [react()],
-  build: {
-    lib: {
-      entry: 'src/spa.tsx',
-      formats: ['system'],
-      fileName: () => 'midi-mix-dash.js',
-    },
-    rollupOptions: {
-      external: ['react', 'react-dom', 'single-spa'],
-    },
-  },
+  plugins: [react()]
 })
