@@ -3,6 +3,7 @@ import type { Project, Device, Control } from '../types/controllers';
 import {
 	exportZip,
 	importFirmware,
+	importFirmwareFiles,
 	importLegacy,
 	importXml,
 	validateProject,
@@ -45,6 +46,13 @@ const useProject = () => {
 			setDevice(imported.controls.moonlander.length ? 'moonlander' : 'midimix');
 			setImportOpen(false);
 			setToast('Firmware / project imported');
+		});
+	const uploadLooseFirmware = (files: File[]) =>
+		run(async () => {
+			setProject(await importFirmwareFiles(files, project));
+			setDevice('moonlander');
+			setImportOpen(false);
+			setToast('Firmware source files imported');
 		});
 	const uploadControllers = (files: File[]) =>
 		run(async () => {
@@ -161,6 +169,7 @@ const useProject = () => {
 		importDevice,
 		setImportDevice,
 		uploadFirmware,
+		uploadLooseFirmware,
 		uploadControllers,
 		download,
 	};

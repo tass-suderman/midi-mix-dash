@@ -13,11 +13,12 @@ const sourceFiles = [
 	'index.html',
 	'eslint.config.js',
 	'.prettierrc.json',
+	'.prettierignore',
 	'.gitignore',
-	'LICENSE',
+	'LICENSE.md',
+	'public/LICENSE.md',
 	'README.md',
 	'PRIVACY.md',
-	'vercel.json',
 ];
 export const sourceArchive = (): Plugin => {
 	let root = process.cwd();
@@ -43,14 +44,14 @@ export const sourceArchive = (): Plugin => {
 		configureServer(server) {
 			server.middlewares.use(async (req, res, next) => {
 				const path = req.url?.split('?')[0];
-				if (path !== '/source.zip' && path !== '/LICENSE.txt') return next();
+				if (path !== '/source.zip' && path !== '/LICENSE.md') return next();
 				try {
 					res.setHeader(
 						'Content-Type',
 						path === '/source.zip' ? 'application/zip' : 'text/plain; charset=utf-8',
 					);
 					res.end(
-						path === '/source.zip' ? await archive() : await readFile(resolve(root, 'LICENSE')),
+						path === '/source.zip' ? await archive() : await readFile(resolve(root, 'LICENSE.md')),
 					);
 				} catch (error) {
 					next(error);
@@ -59,11 +60,6 @@ export const sourceArchive = (): Plugin => {
 		},
 		async generateBundle() {
 			this.emitFile({ type: 'asset', fileName: 'source.zip', source: await archive() });
-			this.emitFile({
-				type: 'asset',
-				fileName: 'LICENSE.txt',
-				source: await readFile(resolve(root, 'LICENSE')),
-			});
 		},
 	};
 };

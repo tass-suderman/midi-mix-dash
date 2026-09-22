@@ -1,18 +1,15 @@
-Allow uploading of loose Moonlander firmware files
+- [x] Allow uploading of loose Moonlander firmware files.
+- [x] Quick script to prepare for flashing (exported script; optional compile, no automatic flashing).
+- [x] Split editor fields/actions, hardware presentation, import forms, information sections, and workspace chrome into small typed components; extract validation and layer operations for testing.
+- [ ] Branding and theming changes
+- [x] Align the MIDImix Send All utility with the master column.
+- [x] Verify imports, editing, exports, empty startup, privacy, and source downloads with automated tests.
+- [ ] Verify compiled firmware and generated mappings on physical hardware and in Mixxx.
+- [x] Fix source.zip download in development and production.
+- [x] Keep Moonlander geometry symmetric and all keys clickable; preserve firmware order.
+- [x] Add MIDI-fill button for a completely blank layer 14.
+- [x] Add single-spa lifecycle exports, scoped styles, and production build support.
+- [x] Register this app in the sibling platform orchestrator (route and both import maps).
 
-Quick script to prepare for flashing
-
-Break components out to smaller files
-
-Branding and theming changes
-
-Fix misaligned button on midimix page
-
-Make sure all functions work.
-
-fix source.zip download
-
-Clean up moonlander graphic
-
-integrate into single spa platform
-
+- [x] Clear current Moonlander keys and mappings with undo, then fill with MIDI.
+- [x] Hide unusable knob/slider actions and empty menu groups.

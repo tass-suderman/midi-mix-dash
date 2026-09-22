@@ -1,3 +1,4 @@
+import prepareFirmware from '../constants/prepare-firmware.sh?raw';
 import JSZip from 'jszip';
 import {
 	type Project,
@@ -124,6 +125,14 @@ export async function importFirmware(file: File, project: Project): Promise<Proj
 	for (const entry of Object.values(zip.files))
 		if (!entry.dir && entry.name.startsWith(prefix) && !/\.(bin|hex|uf2|md5)$/.test(entry.name))
 			firmware[entry.name.slice(prefix.length)] = await entry.async('string');
+	return projectFromFirmware(firmware, project, file.name.replace(/\.zip$/i, ''));
+}
+
+export function projectFromFirmware(
+	firmware: Record<string, string>,
+	project: Project,
+	name: string,
+): Project {
 	if (!firmware['config.h'] || !firmware['rules.mk'])
 		throw new Error('Source ZIP must include config.h and rules.mk next to keymap.c.');
 	const octave = Number(/midi_config.octave\s*=\s*(\d+)/.exec(firmware['keymap.c'])?.[1] ?? 1);
@@ -141,9 +150,24 @@ export async function importFirmware(file: File, project: Project): Promise<Proj
 		octave,
 		channel,
 		controls: { ...project.controls, moonlander: controls },
-		name: file.name.replace(/\.zip$/i, ''),
+		name,
 	};
 }
+export async function importFirmwareFiles(files: File[], project: Project): Promise<Project> {
+	const firmware: Record<string, string> = {};
+	for (const file of files) {
+		if (!/\.(c|h|mk|json|md|txt)$/i.test(file.name))
+			throw new Error('Select source files (.c, .h, .mk, .json), not compiled firmware.');
+		if (Object.hasOwn(firmware, file.name)) throw new Error(`Duplicate source file: ${file.name}`);
+		firmware[file.name] = await file.text();
+	}
+	if (!firmware['keymap.c'] || !firmware['config.h'] || !firmware['rules.mk'])
+		throw new Error(
+			'Select keymap.c, config.h, and rules.mk together. You may include keymap.json and supporting source files.',
+		);
+	return projectFromFirmware(firmware, project, 'Imported Moonlander source');
+}
+
 export function validateProject(p: unknown): asserts p is Project {
 	const x = p as Project;
 	if (
@@ -343,9 +367,11 @@ export function exportController(p: Project, device: Device) {
 export async function exportZip(p: Project) {
 	const zip = new JSZip();
 	zip.file('midi-workbench.json', JSON.stringify(p, null, 2));
-	if (p.firmware['keymap.c'])
+	if (p.firmware['keymap.c']) {
+		zip.file('prepare-firmware.sh', prepareFirmware);
 		for (const [name, content] of Object.entries(patchFirmware(p)))
 			zip.file(`firmware/midi_workbench/${name}`, content);
+	}
 	for (const device of ['moonlander', 'midimix'] as const) {
 		if (!p.controls[device].length && !Object.keys(p.originals[device]).length) continue;
 		const { xml, script } = exportController(p, device);
@@ -356,7 +382,7 @@ export async function exportZip(p: Project) {
 	}
 	zip.file(
 		'README.txt',
-		`MIDI WORKBENCH\n\nFIRMWARE (included only when source was imported; not a flashable binary)\nCopy firmware/midi_workbench into your compatible ZSA QMK checkout under keyboards/zsa/moonlander/keymaps/.\nBuild with: qmk compile -kb zsa/moonlander/reva -km midi_workbench\nUse your hardware revision and the ZSA/QMK version compatible with your Oryx source. Flash the resulting binary with Keymapp or your usual flasher.\nLayer 14, MIDI_ENABLE, MIDI_ADVANCED, and startup octave/channel/transpose are managed. Other source is retained.\n\nMI_ON and MI_OFF control QMK's basic MIDI mode; advanced MI_* note keys send notes independently.\nRuntime octave/channel/transpose changes can move notes away from the exported mappings.\n\nMIXXX\nCopy all files in mixxx/ to your Mixxx user controllers directory. Restart Mixxx, select each Workbench preset under Preferences > Controllers and enable the device.\nLinux: ~/.mixxx/controllers\nmacOS: ~/Library/Application Support/Mixxx/controllers\nWindows: %LOCALAPPDATA%/Mixxx/controllers\nKnobs/faders send normalized 0..1 parameters. Fixed button values use native Mixxx control values.\n\nPROJECT\nImport this ZIP in MIDI Workbench to restore the editable project.\n`,
+		`MIDI WORKBENCH\n\nFIRMWARE (included only when source was imported; not a flashable binary)\nAfter extracting this ZIP, run: bash prepare-firmware.sh /path/to/zsa-qmk zsa/moonlander/reva --build\nThe script refuses to overwrite an existing keymap and never flashes automatically.\nOr copy firmware/midi_workbench into your compatible ZSA QMK checkout under keyboards/zsa/moonlander/keymaps/.\nBuild with: qmk compile -kb zsa/moonlander/reva -km midi_workbench\nUse your hardware revision and the ZSA/QMK version compatible with your Oryx source. Flash the resulting binary with Keymapp or your usual flasher.\nLayer 14, MIDI_ENABLE, MIDI_ADVANCED, and startup octave/channel/transpose are managed. Other source is retained.\n\nMI_ON and MI_OFF control QMK's basic MIDI mode; advanced MI_* note keys send notes independently.\nRuntime octave/channel/transpose changes can move notes away from the exported mappings.\n\nMIXXX\nCopy all files in mixxx/ to your Mixxx user controllers directory. Restart Mixxx, select each Workbench preset under Preferences > Controllers and enable the device.\nLinux: ~/.mixxx/controllers\nmacOS: ~/Library/Application Support/Mixxx/controllers\nWindows: %LOCALAPPDATA%/Mixxx/controllers\nKnobs/faders send normalized 0..1 parameters. Fixed button values use native Mixxx control values.\n\nPROJECT\nImport this ZIP in MIDI Workbench to restore the editable project.\n`,
 	);
 	return zip.generateAsync({ type: 'blob' });
 }

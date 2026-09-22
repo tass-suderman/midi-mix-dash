@@ -1,3 +1,4 @@
+import { isDeckTwoMapping } from '../../utils/mappingColor';
 import { Alert, Box, Button, Typography } from '@mui/material';
 import type { Control } from '../../types/controllers';
 import { mappingLabel } from '../../utils/controlLabels';
@@ -34,7 +35,11 @@ const ControllerAddresses = ({ controls, onSelect }: Props) => (
 						display: 'block',
 						textAlign: 'left',
 						py: 2,
-						boxShadow: control.mapping ? '0 0 14px #f27e8938' : 'none',
+						boxShadow: control.mapping
+							? isDeckTwoMapping(control.mapping)
+								? '0 0 14px #e0af6845'
+								: '0 0 14px #f27e8938'
+							: 'none',
 					}}
 				>
 					<Typography>{control.label}</Typography>

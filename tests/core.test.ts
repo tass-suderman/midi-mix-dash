@@ -20,7 +20,10 @@ import JSZip from 'jszip';
 const read = (n: string) => readFileSync(new URL('../' + n, import.meta.url), 'utf8');
 function project(): Project {
 	const firmware = Object.fromEntries(
-		['keymap.c', 'rules.mk', 'config.h', 'keymap.json'].map((n) => [n, read('qmk-firmware/' + n)]),
+		['keymap.c', 'rules.mk', 'config.h', 'keymap.json'].map((n) => [
+			n,
+			read('tests/fixtures/qmk-firmware/' + n),
+		]),
 	);
 	return {
 		version: 1,
@@ -61,7 +64,7 @@ describe('firmware source', () => {
 	});
 	it('imports the actual Oryx zip and patches only the requested layer', async () => {
 		const z = readFileSync(
-			'zsa_moonlander_reva_9Wynx_3vMKwz_sadbean-attempt-thirty-fork_source.zip',
+			'tests/fixtures/zsa_moonlander_reva_9Wynx_3vMKwz_sadbean-attempt-thirty-fork_source.zip',
 		);
 		Object.assign(z, { name: 'oryx.zip' });
 		const p = await importFirmware(z as unknown as File, project());
@@ -73,11 +76,16 @@ describe('firmware source', () => {
 describe('Mixxx interoperability', () => {
 	it('loads all original Moonlander callbacks and MIDImix CC mappings', () => {
 		const p = project();
-		expect(importLegacy(read('mixxx-controllers/moonlander-midi.js'), p.controls.moonlander)).toBe(
-			24,
-		);
+		expect(
+			importLegacy(
+				read('tests/fixtures/mixxx-controllers/moonlander-midi.js'),
+				p.controls.moonlander,
+			),
+		).toBe(24);
 		expect(p.controls.moonlander.find((c) => c.number === 44)?.mapping?.action).toBe('play');
-		expect(importXml(read('mixxx-controllers/akai-midimix.midi.xml'), p.controls.midimix)).toBe(14);
+		expect(
+			importXml(read('tests/fixtures/mixxx-controllers/akai-midimix.midi.xml'), p.controls.midimix),
+		).toBe(14);
 		expect(p.controls.midimix.find((c) => c.number === 61)?.mapping?.action).toBe('volume');
 	});
 	it('generates executable toggle, release, fixed-value and continuous handlers', () => {
@@ -260,7 +268,7 @@ describe('empty and controller-only projects', () => {
 		const { emptyProject } = await import('../src/utils/emptyProject');
 		const { validateProject } = await import('../src/utils/projectFiles');
 		const p = emptyProject();
-		const script = read('mixxx-controllers/moonlander-midi.js');
+		const script = read('tests/fixtures/mixxx-controllers/moonlander-midi.js');
 		p.controls.moonlander = controllerAddresses({ 'moonlander.js': script });
 		expect(importLegacy(script, p.controls.moonlander)).toBe(24);
 		expect(p.controls.moonlander.every((control) => control.code === undefined)).toBe(true);
@@ -272,5 +280,79 @@ describe('empty and controller-only projects', () => {
 		});
 		const imported = await importFirmware(file as unknown as File, p);
 		expect(imported.controls.moonlander.filter((control) => control.mapping)).toHaveLength(24);
+	});
+});
+
+describe('blank-layer MIDI fill', () => {
+	it('fills 72 ascending notes, preserves other layers and devices, and round-trips', async () => {
+		const { fillMoonlander, canFillMoonlander } = await import('../src/utils/fillMoonlander');
+		const { emptyProject } = await import('../src/utils/emptyProject');
+		const bytes = Object.assign(
+			readFileSync(
+				'tests/fixtures/zsa_moonlander_reva_9Wynx_3vMKwz_sadbean-attempt-thirty-fork_source.zip',
+			),
+			{ name: 'oryx.zip' },
+		);
+		const blank = await importFirmware(bytes as unknown as File, emptyProject());
+		// The real Oryx layer retains a tap-dance key; explicitly blank it for this case.
+		blank.controls.moonlander.forEach((c) => {
+			c.code = 'KC_TRANSPARENT';
+		});
+		expect(canFillMoonlander(blank)).toBe(true);
+		const filled = fillMoonlander({ ...blank, octave: 2, channel: 7 });
+		expect(filled.controls.moonlander.map((c) => c.number)).toEqual(
+			Array.from({ length: 72 }, (_, i) => 24 + i),
+		);
+		expect(filled.controls.moonlander.every((c) => c.channel === 7)).toBe(true);
+		expect(filled.controls.moonlander[0].code).toBe('MI_C');
+		expect(filled.controls.moonlander[71].code).toBe('MI_B5');
+		expect(filled.controls.midimix).toEqual([]);
+		expect(blank.controls.moonlander[0].code).toBe('KC_TRANSPARENT');
+		expect(canFillMoonlander(filled)).toBe(false);
+		const patched = patchFirmware(filled);
+		expect(patched['keymap.c'].split('[14]')[0]).toBe(blank.firmware['keymap.c'].split('[14]')[0]);
+		expect(moonControls(patched['keymap.c'], 2, 7).map((c) => c.number)).toEqual(
+			filled.controls.moonlander.map((c) => c.number),
+		);
+		const zip = new JSZip();
+		zip.file('midi-workbench.json', JSON.stringify(filled));
+		expect(
+			await importFirmware(
+				(await zip.generateAsync({ type: 'uint8array' })) as unknown as File,
+				blank,
+			),
+		).toEqual(filled);
+	});
+	it('refuses empty workspaces, partial layouts, special keys, and existing mappings', async () => {
+		const { fillMoonlander, canFillMoonlander } = await import('../src/utils/fillMoonlander');
+		const { emptyProject } = await import('../src/utils/emptyProject');
+		expect(() => fillMoonlander(emptyProject())).toThrow();
+		const p = project();
+		expect(() => fillMoonlander(p)).toThrow();
+		p.controls.moonlander.forEach((c) => {
+			c.code = 'KC_NO';
+		});
+		expect(canFillMoonlander(p)).toBe(true);
+		p.controls.moonlander[59].code = 'TD(DANCE_0)';
+		expect(() => fillMoonlander(p)).toThrow();
+		p.controls.moonlander[59].code = 'KC_TRNS';
+		p.controls.moonlander[0].mapping = { action: 'play', deck: 1, mode: 'toggle', value: 1 };
+		expect(() => fillMoonlander(p)).toThrow();
+	});
+	it('imports loose source files and rejects incomplete selections', async () => {
+		const { importFirmwareFiles } = await import('../src/utils/projectFiles');
+		const { emptyProject } = await import('../src/utils/emptyProject');
+		const files = Object.entries(project().firmware).map(
+			([name, content]) => ({ name, text: async () => content }) as File,
+		);
+		const imported = await importFirmwareFiles(files, emptyProject());
+		expect(imported.firmware).toEqual(project().firmware);
+		expect(imported.controls.moonlander).toHaveLength(72);
+		await expect(importFirmwareFiles(files.slice(0, 1), emptyProject())).rejects.toThrow(
+			'together',
+		);
+		await expect(importFirmwareFiles([...files, files[0]], emptyProject())).rejects.toThrow(
+			'Duplicate',
+		);
 	});
 });

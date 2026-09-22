@@ -12,7 +12,8 @@
 		"format": "prettier --write src scripts tests e2e *.ts *.json *.js",
 		"lint": "eslint src",
 		"lint:fix": "eslint --fix src",
-		"format:check": "prettier --check src scripts tests e2e *.ts *.json *.js"
+		"format:check": "prettier --check src scripts tests e2e *.ts *.json *.js",
+		"build:spa": "tsc -b && vite build --base=/midi-mix-dash/"
 	},
 	"dependencies": {
 		"@emotion/react": "^11.14.0",
@@ -22,7 +23,7 @@
 		"jszip": "^3.10.1",
 		"react": "^19.1.0",
 		"react-dom": "^19.1.0",
-    "single-spa-react": "^6.0.2"
+		"single-spa-react": "^6.0.2"
 	},
 	"devDependencies": {
 		"@eslint/js": "^9.39.5",

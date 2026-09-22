@@ -20,14 +20,14 @@ export function moonKeyGeometry(index: number) {
 				top = 285;
 				width = 66;
 				height = 85;
-				rotate = -18;
+				rotate = 18;
 			}
 			if (row === 5) {
 				left = 310 + outerCol * 57;
 				top = 388 + outerCol * 20;
 				width = 49;
 				height = 74;
-				rotate = -18;
+				rotate = 18;
 			}
 			return {
 				left: right ? 1040 - left - width : left,

@@ -5,7 +5,7 @@ import JSZip from 'jszip';
 export const loadFirmware = async (page: Page) => {
 	const zip = new JSZip();
 	for (const name of ['keymap.c', 'config.h', 'rules.mk', 'keymap.json'])
-		zip.file(name, readFileSync(`qmk-firmware/${name}`));
+		zip.file(name, readFileSync(`tests/fixtures/qmk-firmware/${name}`));
 	await page.getByRole('button', { name: 'Import files', exact: true }).click();
 	await page.locator('input[type=file][accept=".zip"]').setInputFiles({
 		name: 'test-firmware.zip',
@@ -19,7 +19,7 @@ export const loadMidimix = async (page: Page) => {
 	await page.getByRole('button', { name: 'Import files', exact: true }).click();
 	await page
 		.locator('input[type=file][accept=".xml,.js"]')
-		.setInputFiles('mixxx-controllers/akai-midimix.midi.xml');
+		.setInputFiles('tests/fixtures/mixxx-controllers/akai-midimix.midi.xml');
 	await expect(page.getByRole('dialog')).not.toBeVisible();
 };
 export const loadDevices = async (page: Page) => {

@@ -9,18 +9,18 @@ interface Props {
 
 const ControlEditorDialogTitle = ({ title, controlLabel, onClose }: Props) => {
 	return (
-			<DialogTitle display="flex" alignItems="center" justifyContent="space-between">
-				<div className="eyebrow">
-					<div>{title}</div>
-					<div>{controlLabel}</div>
-				</div>
-				<div className="dialog-heading">
-					<Button aria-label="Close editor" onClick={onClose}>
-						<CloseRounded />
-					</Button>
-				</div>
-			</DialogTitle>
-	)
+		<DialogTitle display="flex" alignItems="center" justifyContent="space-between">
+			<div className="eyebrow">
+				<div>{title}</div>
+				<div>{controlLabel}</div>
+			</div>
+			<div className="dialog-heading">
+				<Button aria-label="Close editor" onClick={onClose}>
+					<CloseRounded />
+				</Button>
+			</div>
+		</DialogTitle>
+	);
 };
 
 export default ControlEditorDialogTitle;

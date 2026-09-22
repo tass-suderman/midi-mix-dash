@@ -1,4 +1,4 @@
-export const sourceRepository = 'https://github.com/tass-suderman/moonlander-midi-dj-firmware';
+export const sourceRepository = 'https://github.com/tass-suderman/midi-mix-dash';
 
 export const privacyPolicy = [
 	{

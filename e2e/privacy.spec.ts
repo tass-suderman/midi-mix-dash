@@ -58,11 +58,14 @@ test('information includes the AGPL, accurate hosting disclosure, and matching s
 	expect(await zip.file('src/hooks/useProject.ts')!.async('string')).toBe(
 		readFileSync('src/hooks/useProject.ts', 'utf8'),
 	);
-	expect(zip.file('LICENSE')).toBeTruthy();
+	expect(zip.file('LICENSE.md')).toBeTruthy();
 	expect(zip.file('scripts/sourceArchive.ts')).toBeTruthy();
 	expect(
 		Object.keys(zip.files).some(
-			(n) => n.startsWith('qmk-firmware/') || n.includes('.env') || n.startsWith('public/examples'),
+			(n) =>
+				n.startsWith('tests/fixtures/qmk-firmware/') ||
+				n.includes('.env') ||
+				n.startsWith('public/examples'),
 		),
 	).toBe(false);
 	await page.setViewportSize({ width: 390, height: 844 });
@@ -71,15 +74,13 @@ test('information includes the AGPL, accurate hosting disclosure, and matching s
 	);
 });
 
-test('production build works with the restrictive Vercel connection policy', async ({ page }) => {
-	const config = JSON.parse(readFileSync('vercel.json', 'utf8'));
-	const policy = config.headers[0].headers.find(
-		(header: { key: string }) => header.key === 'Content-Security-Policy',
-	).value;
+test('production build works without application network connections', async ({ page }) => {
+	const policy =
+		"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'none'";
 	const errors: string[] = [];
 	page.on('pageerror', (error) => errors.push(error.message));
-	await page.route('http://127.0.0.1:5173/**', async (route) => {
-		const pathname = new URL(route.request().url()).pathname;
+	await page.route('http://127.0.0.1:7457/**', async (route) => {
+		const pathname = new URL(route.request().url()).pathname.replace(/^\/midi-mix-dash(?=\/)/, '');
 		const file = pathname === '/' ? 'index.html' : pathname.slice(1);
 		const contentType = file.endsWith('.js')
 			? 'text/javascript'

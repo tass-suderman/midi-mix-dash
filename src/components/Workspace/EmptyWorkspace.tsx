@@ -1,27 +1,33 @@
 import { Box, Button, Typography } from '@mui/material';
 import { UploadFileRounded } from '@mui/icons-material';
 import type { Device } from '../../types/controllers';
+import ControllerGraphic from '../Controllers/ControllerGraphic';
+import { emptyGraphic } from '../../utils/emptyGraphic';
 interface Props {
 	device: Device;
 	onImport: () => void;
 }
 const EmptyWorkspace = ({ device, onImport }: Props) => (
-	<Box className="empty-workspace" sx={{ p: { xs: 4, md: 8 }, textAlign: 'center' }}>
-		<UploadFileRounded sx={{ fontSize: 48, color: 'text.secondary' }} />
-		<Typography variant="h5" component="h2" sx={{ justifyContent: 'center', my: 2 }}>
-			No {device === 'moonlander' ? 'Moonlander' : 'MIDImix'} files loaded
-		</Typography>
-		<Typography sx={{ maxWidth: 560, mx: 'auto', mb: 3 }}>
-			{device === 'moonlander'
-				? 'Import an Oryx source ZIP to edit your keyboard, or Mixxx controller files to edit MIDI mappings.'
-				: 'Import a Mixxx controller preset to start mapping your MIDImix.'}
-		</Typography>
-		<Button onClick={onImport} startIcon={<UploadFileRounded />}>
-			Choose files
-		</Button>
-		<Typography variant="body2" sx={{ mt: 3, color: 'text.secondary' }}>
-			Files stay in this tab. Nothing is uploaded or autosaved.
-		</Typography>
-	</Box>
+	<>
+		<Box className="empty-workspace" sx={{ px: 4, pt: 3, pb: 2 }}>
+			<Typography variant="h5" component="h2">
+				No {device === 'moonlander' ? 'Moonlander' : 'MIDImix'} files loaded
+			</Typography>
+			<Typography variant="body2" sx={{ my: 1, color: 'text.secondary' }}>
+				This is an empty layout. Select a control or import files to load your{' '}
+				{device === 'moonlander' ? 'firmware or controller mappings' : 'controller mappings'}. Files
+				stay in this tab.
+			</Typography>
+			<Button onClick={onImport} startIcon={<UploadFileRounded />}>
+				Choose files
+			</Button>
+		</Box>
+		<ControllerGraphic
+			controls={emptyGraphic(device)}
+			device={device}
+			octave={1}
+			onSelect={onImport}
+		/>
+	</>
 );
 export default EmptyWorkspace;
