@@ -4,6 +4,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import singleSpaReact from 'single-spa-react';
 import Root from './Root';
+import { setEmbeddedAssetMode } from './utils/assetUrl';
 
 const lifecycles = singleSpaReact({
 	React,
@@ -17,6 +18,7 @@ const lifecycles = singleSpaReact({
 export const bootstrap = lifecycles.bootstrap;
 let styleElement: HTMLStyleElement | undefined;
 export const mount = async (props: Parameters<typeof lifecycles.mount>[0]) => {
+	setEmbeddedAssetMode(true);
 	styleElement = document.createElement('style');
 	styleElement.textContent = styles;
 	document.head.appendChild(styleElement);
@@ -32,6 +34,7 @@ export const unmount = async (props: Parameters<typeof lifecycles.unmount>[0]) =
 	try {
 		await lifecycles.unmount(props);
 	} finally {
+		setEmbeddedAssetMode(false);
 		styleElement?.remove();
 		styleElement = undefined;
 	}
